@@ -34,7 +34,7 @@ def login_required(fn):
 def load_user():
     init_db()
     seed()
-    token = request.args.get("sid") or request.cookies.get("hold_session")
+    token = request.cookies.get("hold_session")
     g.user = None
     g.session_token = None
     if not token:
@@ -60,8 +60,9 @@ def persist_session_cookie(response):
         response.set_cookie(
             "hold_session",
             g.session_token,
-            httponly=False,
-            samesite=None,
+            httponly=True,
+            samesite="Lax",
+            secure=request.is_secure,
             path="/",
             max_age=60 * 60 * 24 * 14,
         )
@@ -260,7 +261,7 @@ def mine():
         (current_user()["id"],),
     ).fetchall()
     conn.close()
-    return render_template("mine.html", bookings=bookings, sid=g.session_token)
+    return render_template("mine.html", bookings=bookings)
 
 
 @app.get("/bookings/<int:booking_id>")
